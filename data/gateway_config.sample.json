@@ -1,0 +1,29 @@
+{
+  "aliases": {
+    "fast": {
+      "primary": "gpt-4o-mini",
+      "fallback_chain": ["claude-haiku"]
+    },
+    "smart": {
+      "primary": "gpt-4o",
+      "fallback_chain": ["claude-sonnet"]
+    }
+  },
+  "auto_routing": {
+    "fast_alias": "fast",
+    "smart_alias": "smart",
+    "difficulty_threshold": 0.5
+  },
+  "retries": {
+    "max_attempts": 3,
+    "base_backoff_seconds": 0.2,
+    "max_backoff_seconds": 2.0
+  },
+  "timeouts": {
+    "provider_request_timeout_seconds": 8
+  },
+  "cache": {
+    "similarity_threshold": 0.55,
+    "ttl_seconds": 3600
+  }
+}
