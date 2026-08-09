@@ -1,0 +1,25 @@
+[
+  {"prompt": "Hi there!", "expected": "fast"},
+  {"prompt": "What time zone is Tokyo in?", "expected": "fast"},
+  {"prompt": "Thanks so much!", "expected": "fast"},
+  {"prompt": "Define the word 'ephemeral'.", "expected": "fast"},
+  {"prompt": "What's 2 + 2?", "expected": "fast"},
+  {"prompt": "Repeat this: hello world.", "expected": "fast"},
+  {"prompt": "List the following items in a table: apple, banana, cherry, date, elderberry, fig, grape, honeydew.", "expected": "fast", "note": "long-but-trivial trap"},
+  {"prompt": "Copy the sentence 'the quick brown fox jumps over the lazy dog' ten times, once per line, without changing anything.", "expected": "fast", "note": "long-but-trivial trap"},
+  {"prompt": "What is the capital of Germany, and what is the capital of Italy, and what is the capital of Spain?", "expected": "fast", "note": "long-but-trivial: multiple simple lookups, still easy"},
+  {"prompt": "Translate 'good morning' to French.", "expected": "fast"},
+
+  {"prompt": "Prove that the square root of 2 is irrational.", "expected": "smart", "note": "short-but-hard trap"},
+  {"prompt": "Why does time dilation occur near a black hole?", "expected": "smart", "note": "short-but-hard trap"},
+  {"prompt": "Debug this: a recursive fibonacci function that never terminates.", "expected": "smart", "note": "short-but-hard trap"},
+  {"prompt": "Design a rate limiter that handles burst traffic and clock skew across nodes.", "expected": "smart"},
+  {"prompt": "Compare the trade-offs of REST vs GraphQL for a mobile-first API.", "expected": "smart"},
+  {"prompt": "Write a function that finds the longest palindromic substring, and explain its time complexity.", "expected": "smart"},
+  {"prompt": "Explain why a race condition could occur in this concurrent counter implementation, step by step.", "expected": "smart"},
+  {"prompt": "Derive the gradient of the cross-entropy loss with respect to the logits.", "expected": "smart"},
+  {"prompt": "What are the edge cases I should test for a function that parses ISO 8601 dates?", "expected": "smart"},
+  {"prompt": "Refactor this code to reduce its cyclomatic complexity and explain each change.", "expected": "smart"},
+  {"prompt": "Give a counter-example showing that greedy coin change fails for arbitrary denominations.", "expected": "smart", "note": "short-but-hard trap"},
+  {"prompt": "Optimize this O(n^2) algorithm to O(n log n) and explain the approach.", "expected": "smart"}
+]

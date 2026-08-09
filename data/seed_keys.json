@@ -1,0 +1,23 @@
+[
+  {
+    "key": "sk-prism-team-alpha-0001",
+    "tenant": "team-alpha",
+    "allowed_models": ["gpt-4o-mini", "gpt-4o", "claude-haiku", "claude-sonnet", "fast", "smart", "auto"],
+    "rpm_limit": 60,
+    "monthly_budget_usd": 25.0
+  },
+  {
+    "key": "sk-prism-team-beta-0002",
+    "tenant": "team-beta",
+    "allowed_models": ["gpt-4o-mini", "claude-haiku", "fast", "auto"],
+    "rpm_limit": 20,
+    "monthly_budget_usd": 5.0
+  },
+  {
+    "key": "sk-prism-team-gamma-0003",
+    "tenant": "team-gamma",
+    "allowed_models": ["gpt-4o-mini", "gpt-4o", "claude-haiku", "claude-sonnet", "fast", "smart", "auto"],
+    "rpm_limit": 5,
+    "monthly_budget_usd": 0.05
+  }
+]

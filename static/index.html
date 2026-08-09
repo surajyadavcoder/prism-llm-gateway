@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Prism Ops Console</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --border:#2a2e38; --text:#e6e8ee; --muted:#9aa1ae; --accent:#7c9cff; --good:#4ade80; --bad:#f87171; --warn:#fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { padding: 20px 28px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  header h1 { margin:0; font-size: 20px; }
+  header h1 span { color: var(--accent); }
+  main { padding: 24px 28px; display:grid; gap:20px; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); }
+  .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .panel h2 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  table { width:100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align:left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; }
+  .pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight:600; }
+  .ok { background: rgba(74,222,128,.15); color: var(--good); }
+  .err { background: rgba(248,113,113,.15); color: var(--bad); }
+  .rej { background: rgba(251,191,36,.15); color: var(--warn); }
+  .full { grid-column: 1 / -1; }
+  .provider-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .provider-row select { background:#0f1115; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:4px 8px; }
+  button { background: var(--accent); border:none; color:#0f1115; font-weight:600; padding:6px 14px; border-radius:6px; cursor:pointer; }
+  .refresh { font-size:12px; color: var(--muted); cursor:pointer; }
+  .stat { font-size: 26px; font-weight:700; }
+  .statlabel { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Prism <span>Ops Console</span></h1>
+  <div class="refresh" onclick="loadAll()">⟳ refresh</div>
+</header>
+<main>
+  <div class="panel">
+    <h2>Provider Health</h2>
+    <div id="providers"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Usage by Key</h2>
+    <table id="usageTable">
+      <thead><tr><th>Tenant</th><th>Reqs</th><th>Cost $</th><th>Cache Hit%</th><th>Fallbacks</th><th>Avg Latency</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="panel full">
+    <h2>Recent Requests</h2>
+    <table id="reqTable">
+      <thead><tr><th>Time</th><th>Tenant</th><th>Requested</th><th>Resolved</th><th>Provider</th><th>Status</th><th>Cache</th><th>Fallback</th><th>Cost $</th><th>Latency ms</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+let ADMIN_KEY = sessionStorage.getItem('prism_admin_key') || '';
+
+function ensureAdminKey() {
+  if (!ADMIN_KEY) {
+    ADMIN_KEY = prompt('Enter ADMIN_API_KEY to manage provider health (leave blank to view usage only):') || '';
+    sessionStorage.setItem('prism_admin_key', ADMIN_KEY);
+  }
+  return ADMIN_KEY;
+}
+
+function adminHeaders() {
+  return ADMIN_KEY ? { 'Authorization': `Bearer ${ADMIN_KEY}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+
+async function loadProviders() {
+  ensureAdminKey();
+  const res = await fetch('/admin/provider_health', { headers: adminHeaders() });
+  if (res.status === 401) {
+    document.getElementById('providers').innerHTML = '<span style="color:var(--bad)">Invalid or missing admin key. Refresh to re-enter.</span>';
+    return;
+  }
+  const data = await res.json();
+  const container = document.getElementById('providers');
+  container.innerHTML = '';
+  const names = Object.keys(data.providers).length ? Object.keys(data.providers) : ['openai','anthropic'];
+  names.forEach(name => {
+    const state = data.providers[name] || 'up';
+    const row = document.createElement('div');
+    row.className = 'provider-row';
+    row.innerHTML = `<strong style="width:90px">${name}</strong>
+      <span class="pill ${state==='up'?'ok':(state==='down'?'err':'rej')}">${state}</span>
+      <select id="sel-${name}">
+        <option value="up" ${state==='up'?'selected':''}>up</option>
+        <option value="degraded" ${state==='degraded'?'selected':''}>degraded</option>
+        <option value="down" ${state==='down'?'selected':''}>down</option>
+      </select>
+      <button onclick="setHealth('${name}')">Apply</button>`;
+    container.appendChild(row);
+  });
+}
+
+async function setHealth(name) {
+  const state = document.getElementById('sel-' + name).value;
+  await fetch('/admin/provider_health', {
+    method: 'POST', headers: adminHeaders(),
+    body: JSON.stringify({provider: name, state})
+  });
+  loadProviders();
+}
+
+async function loadUsage() {
+  const res = await fetch('/v1/usage/summary');
+  const data = await res.json();
+  const tbody = document.querySelector('#usageTable tbody');
+  tbody.innerHTML = '';
+  data.usage.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.tenant}</td><td>${u.requests}</td><td>${u.total_cost_usd.toFixed(4)}</td>
+      <td>${(u.cache_hit_rate*100).toFixed(1)}%</td><td>${u.fallback_count}</td><td>${u.avg_latency_ms.toFixed(0)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function loadRequests() {
+  const res = await fetch('/v1/usage/requests?limit=40');
+  const data = await res.json();
+  const tbody = document.querySelector('#reqTable tbody');
+  tbody.innerHTML = '';
+  data.requests.forEach(r => {
+    const tr = document.createElement('tr');
+    const statusClass = r.status === 'ok' ? 'ok' : (r.status === 'rejected' ? 'rej' : 'err');
+    const t = new Date(r.ts * 1000).toLocaleTimeString();
+    tr.innerHTML = `<td>${t}</td><td>${r.tenant}</td><td>${r.requested_model}</td><td>${r.resolved_model||'-'}</td>
+      <td>${r.provider||'-'}</td><td><span class="pill ${statusClass}">${r.status}</span></td>
+      <td>${r.cache_hit? 'hit':'miss'}</td><td>${r.fallback_used? 'yes':'no'}</td>
+      <td>${(r.cost_usd||0).toFixed(6)}</td><td>${(r.latency_ms||0).toFixed(0)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function loadAll() {
+  await Promise.all([loadProviders(), loadUsage(), loadRequests()]);
+}
+loadAll();
+setInterval(loadAll, 5000);
+</script>
+</body>
+</html>

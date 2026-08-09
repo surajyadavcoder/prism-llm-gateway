@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: PYTHONPATH=. python3 -m unittest discover tests -v
+
+      - name: Start gateway
+        env:
+          ADMIN_API_KEY: ci-test-admin-key
+        run: |
+          PYTHONPATH=. nohup python3 app/main.py > server.log 2>&1 &
+          sleep 3
+
+      - name: Smoke test
+        env:
+          ADMIN_API_KEY: ci-test-admin-key
+        run: python3 scripts/smoke_test.py
+
+      - name: Routing eval (must beat length-only baseline)
+        run: python3 scripts/routing_eval.py --offline
+
+      - name: Load test (concurrency correctness)
+        run: python3 scripts/load_test.py --workers 20 --requests 40
+
+      - name: Show server logs on failure
+        if: failure()
+        run: cat server.log || true

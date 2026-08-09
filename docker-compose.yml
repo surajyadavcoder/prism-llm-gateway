@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  prism:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PRISM_USE_REAL_PROVIDERS=${PRISM_USE_REAL_PROVIDERS:-false}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://openrouter.ai/api/v1}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
+      - PRISM_ALLOWED_ORIGINS=${PRISM_ALLOWED_ORIGINS:-*}
+    volumes:
+      - prism_data:/app/data
+volumes:
+  prism_data:

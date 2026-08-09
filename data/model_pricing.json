@@ -1,0 +1,26 @@
+{
+  "gpt-4o-mini": {
+    "provider": "openai",
+    "tier": "fast",
+    "input_per_1k": 0.00015,
+    "output_per_1k": 0.0006
+  },
+  "gpt-4o": {
+    "provider": "openai",
+    "tier": "smart",
+    "input_per_1k": 0.005,
+    "output_per_1k": 0.015
+  },
+  "claude-haiku": {
+    "provider": "anthropic",
+    "tier": "fast",
+    "input_per_1k": 0.00025,
+    "output_per_1k": 0.00125
+  },
+  "claude-sonnet": {
+    "provider": "anthropic",
+    "tier": "smart",
+    "input_per_1k": 0.003,
+    "output_per_1k": 0.015
+  }
+}
