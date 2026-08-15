@@ -4,6 +4,7 @@ A production-shaped LLM gateway: one OpenAI-compatible endpoint in front of
 multiple model providers, with the gateway itself making decisions in the
 hot path — how hard is this prompt, which model tier should handle it, has
 something like this been asked before, is this tenant still within budget.
+Demo update for submission
 
 Built as an AI-first software engineering capstone project.
 
